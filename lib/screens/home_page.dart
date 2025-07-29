@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tokoku_frontend/screens/add_product.dart';
 import 'package:tokoku_frontend/screens/product_detail.dart';
+import 'package:tokoku_frontend/screens/profile_page.dart';
 import '../models/product_model.dart';
+import '../models/user_model.dart';
 import '../services/api_service.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final UserModel user;
+  const HomePage({super.key, required this.user});
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -19,7 +24,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     futureProducts = ApiService.fetchProducts();
-    
+
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
@@ -48,7 +53,29 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
-      appBar: _buildAppBar(),
+      appBar: AppBar(
+        title:  Text('Tokoku',
+        style: GoogleFonts.poppins(
+          fontSize: 21,
+          color: Colors.white,
+          fontWeight: FontWeight.w500
+        ),
+        ),
+        backgroundColor: const Color(0xFF6366F1),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProfilePage(user: widget.user),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           _refreshProducts();
@@ -74,22 +101,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      title: const Text(
-        'Toko Ku',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-          fontSize: 22,
-        ),
-      ),
-      backgroundColor: const Color(0xFF6366F1),
-      elevation: 0,
-      centerTitle: true,
-    );
-  }
-
   Widget _buildEmptyState() {
     return FadeTransition(
       opacity: _fadeAnimation,
@@ -97,28 +108,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.store_outlined,
-              size: 64,
-              color: Color(0xFF6366F1),
-            ),
+            Icon(Icons.store_outlined, size: 64, color: Color(0xFF6366F1)),
             SizedBox(height: 16),
-            Text(
-              'Belum ada produk',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1F2937),
-              ),
-            ),
+            Text('Belum ada produk',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             SizedBox(height: 8),
-            Text(
-              'Tambahkan produk pertama Anda',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF6B7280),
-              ),
-            ),
+            Text('Tambahkan produk pertama Anda'),
           ],
         ),
       ),
@@ -132,28 +127,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Color(0xFFEF4444),
-            ),
+            Icon(Icons.error_outline, size: 64, color: Color(0xFFEF4444)),
             SizedBox(height: 16),
-            Text(
-              'Gagal memuat data',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1F2937),
-              ),
-            ),
+            Text('Gagal memuat data',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             SizedBox(height: 8),
-            Text(
-              'Tarik ke bawah untuk refresh',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF6B7280),
-              ),
-            ),
+            Text('Tarik ke bawah untuk refresh'),
           ],
         ),
       ),
@@ -218,14 +197,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               children: [
                 _buildProductImage(),
                 const SizedBox(width: 16),
-                Expanded(
-                  child: _buildProductInfo(product),
-                ),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Color(0xFF9CA3AF),
-                ),
+                Expanded(child: _buildProductInfo(product)),
+                const Icon(Icons.arrow_forward_ios, size: 16, color: Color(0xFF9CA3AF)),
               ],
             ),
           ),
@@ -242,11 +215,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         color: const Color(0xFF6366F1),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Icon(
-        Icons.shopping_bag_outlined,
-        color: Colors.white,
-        size: 28,
-      ),
+      child: const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 28),
     );
   }
 
@@ -254,36 +223,30 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          product.name,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1F2937),
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Rp ${product.price.toStringAsFixed(0)}',
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF059669),
-          ),
-        ),
-        if (product.description.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(
-            product.description,
+        Text(product.name,
             style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF6B7280),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1F2937),
             ),
             maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+            overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 4),
+        Text('Rp ${product.price.toStringAsFixed(0)}',
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF059669),
+            )),
+        if (product.description.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(product.description,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF6B7280),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
         ],
       ],
     );
@@ -302,9 +265,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       },
       label: const Text(
         'Tambah',
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-        ),
+        style: TextStyle(fontWeight: FontWeight.w600),
       ),
       icon: const Icon(Icons.add),
       backgroundColor: const Color(0xFF6366F1),

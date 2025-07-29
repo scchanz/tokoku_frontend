@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tokoku_frontend/models/user_model.dart';
-import 'package:tokoku_frontend/screens/register.dart';
+import '../models/user_model.dart';
+import '../screens/home_page.dart';
 import '../services/auth_service.dart';
-import 'home_page.dart'; // Ganti sesuai tujuan setelah login
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,57 +11,64 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
-  UserModel? loggedInUser;
+  bool isLoading = false;
 
   void _login() async {
-  try {
+    setState(() {
+      isLoading = true;
+    });
+
     final result = await AuthService.login(
-      _emailController.text,
-      _passwordController.text,
+      emailController.text.trim(),
+      passwordController.text.trim(),
     );
 
-    print('Result: $result'); // DEBUG: print isi response
+    setState(() {
+      isLoading = false;
+    });
 
-    if (result['success']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login berhasil')),
+    if (result['success'] == true) {
+      final user = UserModel.fromJson(result['user']);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomePage(user: user)),
       );
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomePage()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'Gagal login')));
+        SnackBar(content: Text(result['message'] ?? 'Login gagal')),
+      );
     }
-  } catch (e) {
-    print('Login error: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Terjadi kesalahan saat login: $e')),
-    );
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Login")),
+      appBar: AppBar(title: const Text("Login")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(children: [
-          TextField(controller: _emailController, decoration: InputDecoration(labelText: "Email")),
-          TextField(controller: _passwordController, obscureText: true, decoration: InputDecoration(labelText: "Password")),
-          SizedBox(height: 20),
-          ElevatedButton(onPressed: _login, child: Text("Login")),
-          TextButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage()));
-            },
-            child: Text("Belum punya akun? Register"),
-          )
-        ]),
+        child: Column(
+          children: [
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: "Email"),
+            ),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: "Password"),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: isLoading ? null : _login,
+              child: isLoading
+                  ? const CircularProgressIndicator()
+                  : const Text("Login"),
+            )
+          ],
+        ),
       ),
     );
   }
